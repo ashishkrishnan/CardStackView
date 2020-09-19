@@ -1,5 +1,3 @@
-![Logo](https://github.com/yuyakaido/images/blob/master/CardStackView/sample-logo.png)
-
 # CardStackView
 
 ![Platform](http://img.shields.io/badge/platform-android-blue.svg?style=flat)
