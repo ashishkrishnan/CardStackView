@@ -1,10 +1,11 @@
 package com.yuyakaido.android.cardstackview.internal;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.yuyakaido.android.cardstackview.Direction;
 
-public class CardStackState {
+public class CardStackState implements Parcelable {
     public Status status = Status.Idle;
     public int width = 0;
     public int height = 0;
@@ -14,37 +15,48 @@ public class CardStackState {
     public int targetPosition = RecyclerView.NO_POSITION;
     public float proportion = 0.0f;
 
-    public enum Status {
-        Idle,
-        Dragging,
-        RewindAnimating,
-        AutomaticSwipeAnimating,
-        AutomaticSwipeAnimated,
-        ManualSwipeAnimating,
-        ManualSwipeAnimated;
+    public CardStackState(Parcel in) {
+        status = Status.valueOf(in.readString());
+        width = in.readInt();
+        height = in.readInt();
+        dx = in.readInt();
+        dy = in.readInt();
+        topPosition = in.readInt();
+        targetPosition = in.readInt();
+        proportion = in.readFloat();
+    }
 
-        public boolean isBusy() {
-            return this != Idle;
-        }
+    public CardStackState() {}
 
-        public boolean isDragging() {
-            return this == Dragging;
-        }
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
-        public boolean isSwipeAnimating() {
-            return this == ManualSwipeAnimating || this == AutomaticSwipeAnimating;
-        }
+    @Override
+    public String toString() {
+        return "CardStackState{" +
+                "status=" + status +
+                ", width=" + width +
+                ", height=" + height +
+                ", dx=" + dx +
+                ", dy=" + dy +
+                ", topPosition=" + topPosition +
+                ", targetPosition=" + targetPosition +
+                ", proportion=" + proportion +
+                '}';
+    }
 
-        public Status toAnimatedStatus() {
-            switch (this) {
-                case ManualSwipeAnimating:
-                    return ManualSwipeAnimated;
-                case AutomaticSwipeAnimating:
-                    return AutomaticSwipeAnimated;
-                default:
-                    return Idle;
-            }
-        }
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(status.name());
+        dest.writeInt(width);
+        dest.writeInt(height);
+        dest.writeInt(dx);
+        dest.writeInt(dy);
+        dest.writeInt(topPosition);
+        dest.writeInt(targetPosition);
+        dest.writeFloat(proportion);
     }
 
     public void next(Status state) {
@@ -82,9 +94,7 @@ public class CardStackState {
     public boolean isSwipeCompleted() {
         if (status.isSwipeAnimating()) {
             if (topPosition < targetPosition) {
-                if (width < Math.abs(dx) || height < Math.abs(dy)) {
-                    return true;
-                }
+                return width < Math.abs(dx) || height < Math.abs(dy);
             }
         }
         return false;
@@ -100,10 +110,53 @@ public class CardStackState {
         if (itemCount < position) {
             return false;
         }
-        if (status.isBusy()) {
-            return false;
-        }
-        return true;
+        return !status.isBusy();
     }
 
+    public static final Parcelable.Creator<CardStackState> CREATOR =
+            new Parcelable.Creator<CardStackState>() {
+
+                @Override
+                public CardStackState createFromParcel(Parcel in) {
+                    return new CardStackState(in);
+                }
+
+                @Override
+                public CardStackState[] newArray(int size) {
+                    return new CardStackState[size];
+                }
+    };
+
+    public enum Status {
+        Idle,
+        Dragging,
+        RewindAnimating,
+        AutomaticSwipeAnimating,
+        AutomaticSwipeAnimated,
+        ManualSwipeAnimating,
+        ManualSwipeAnimated;
+
+        public boolean isBusy() {
+            return this != Idle;
+        }
+
+        public boolean isDragging() {
+            return this == Dragging;
+        }
+
+        public boolean isSwipeAnimating() {
+            return this == ManualSwipeAnimating || this == AutomaticSwipeAnimating;
+        }
+
+        public Status toAnimatedStatus() {
+            switch (this) {
+                case ManualSwipeAnimating:
+                    return ManualSwipeAnimated;
+                case AutomaticSwipeAnimating:
+                    return AutomaticSwipeAnimated;
+                default:
+                    return Idle;
+            }
+        }
+    }
 }
