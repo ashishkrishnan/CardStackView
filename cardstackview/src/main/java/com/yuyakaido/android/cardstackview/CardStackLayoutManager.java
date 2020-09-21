@@ -3,6 +3,8 @@ package com.yuyakaido.android.cardstackview;
 import android.content.Context;
 import android.graphics.PointF;
 import android.os.Handler;
+import android.os.Parcelable;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
@@ -10,6 +12,7 @@ import android.view.animation.Interpolator;
 import androidx.annotation.FloatRange;
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.yuyakaido.android.cardstackview.internal.CardStackSetting;
@@ -194,6 +197,21 @@ public class CardStackLayoutManager
             if (state.canScrollToPosition(position, getItemCount())) {
                 smoothScrollToPosition(position);
             }
+        }
+    }
+
+    @Nullable
+    @Override
+    public Parcelable onSaveInstanceState() {
+        return getCardStackState();
+    }
+
+    @Override
+    public void onRestoreInstanceState(Parcelable state) {
+        if (state instanceof CardStackState) {
+            Log.i(CardStackState.class.getSimpleName(), state.toString());
+            this.state = (CardStackState) state;
+            requestLayout();
         }
     }
 
